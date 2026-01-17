@@ -158,7 +158,7 @@ film-search-project/
 └── static/                   # Статические файлы
     ├── index.html            # Главная страница
     ├── css/
-    │   └── styles.css        # Стили (Perplexity Design System)
+    │   └── styles.css        # Стили
     └── js/
         └── script.js         # JavaScript логика
 ```
