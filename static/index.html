@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Film Search - Поиск фильмов</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Заголовок -->
+        <header class="header">
+            <h1>🎬 Film Search</h1>
+            <p class="subtitle">Поиск фильмов из базы данных Sakila</p>
+        </header>
+
+        <!-- Основной контент -->
+        <main class="main-content">
+            <!-- Вкладки навигации -->
+            <div class="tabs">
+                <button class="tab-button active" onclick="switchTab('keyword')">По названию</button>
+                <button class="tab-button" onclick="switchTab('genre')">По жанру и году</button>
+                <button class="tab-button" onclick="switchTab('actor')">По актёру</button>
+                <button class="tab-button" onclick="switchTab('stats')">Статистика</button>
+            </div>
+
+            <!-- Вкладка 1: Поиск по ключевому слову -->
+            <div id="keyword" class="tab-content active">
+                <h2>Поиск по названию фильма</h2>
+                <div class="search-form">
+                    <input
+                        type="text"
+                        id="keyword-input"
+                        placeholder="Введите название фильма..."
+                        maxlength="100"
+                    >
+                    <button onclick="searchByKeyword(1)">🔍 Поиск</button>
+                </div>
+                <div id="keyword-results" class="results"></div>
+            </div>
+
+            <!-- Вкладка 2: Поиск по жанру и году -->
+            <div id="genre" class="tab-content">
+                <h2>Поиск по жанру и году выпуска</h2>
+                <div class="search-form">
+                    <select id="genre-select">
+                        <option value="">-- Выберите жанр --</option>
+                    </select>
+                    <div class="year-range">
+                        <label>От: <input type="number" id="year-from" min="1895" max="2030" value="2000"></label>
+                        <label>До: <input type="number" id="year-to" min="1895" max="2030" value="2023"></label>
+                    </div>
+                    <button onclick="searchByGenreYear(1)">🔍 Поиск</button>
+                </div>
+                <div id="genre-results" class="results"></div>
+            </div>
+
+            <!-- Вкладка 3: Поиск по актёру -->
+            <div id="actor" class="tab-content">
+                <h2>Поиск фильмов по актёру</h2>
+                <div class="search-form">
+                    <select id="actor-select">
+                        <option value="">-- Выберите актёра --</option>
+                    </select>
+                    <button onclick="searchByActor(1)">🔍 Поиск</button>
+                </div>
+                <div id="actor-results" class="results"></div>
+            </div>
+
+            <!-- Вкладка 4: Статистика -->
+            <div id="stats" class="tab-content">
+                <h2>Статистика поисков</h2>
+                <div class="stats-grid">
+                    <div class="stats-section">
+                        <h3>🔝 Популярные запросы</h3>
+                        <div id="popular-stats"></div>
+                    </div>
+                    <div class="stats-section">
+                        <h3>⏱️ Последние поиски</h3>
+                        <div id="recent-stats"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/script.js"></script>
+</body>
+</html>
