@@ -132,6 +132,9 @@ dmypy.json
 .vscode/
 .idea/
 
+# Privat Docs
+PROJECT_DOCUMENTATION.md
+
 # TMDB API Configuration (содержит секретные ключи)
 tmdb_config.py
 
