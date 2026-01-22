@@ -82,8 +82,8 @@ async def search_by_keyword(
         # Логирование запроса
         log_writer.log_search(
             search_type="keyword",
-            params={"keyword": q},
-            results_count=len(enriched_films),
+            params={"keyword": q, "page": page},
+            results_count=total_count,
             execution_time_ms=execution_time * 1000
         )
 
@@ -139,9 +139,10 @@ async def search_by_genre_and_year(
             search_type="genre__years_range",
             params={
                 "genre": genre,
-                "years_range": f"{year_from}-{year_to}"
+                "years_range": f"{year_from}-{year_to}",
+                "page": page
             },
-            results_count=len(enriched_films),
+            results_count=total_count,
             execution_time_ms=execution_time * 1000
         )
 
@@ -189,8 +190,8 @@ async def search_by_genre(
 
         log_writer.log_search(
             search_type="genre",
-            params={"genre": genre},
-            results_count=len(enriched_films),
+            params={"genre": genre, "page": page},
+            results_count=total_count,
             execution_time_ms=execution_time * 1000
         )
 
@@ -242,8 +243,8 @@ async def search_by_actor(
         
         log_writer.log_search(
             search_type="actor",
-            params={"actor_name": actor_name},
-            results_count=len(enriched_films),
+            params={"actor_name": actor_name, "page": page},
+            results_count=total_count,
             execution_time_ms=execution_time * 1000
         )
 

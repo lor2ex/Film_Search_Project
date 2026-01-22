@@ -477,7 +477,7 @@ function displayPopularStats(searches) {
             <div class="stat-item">
                 <div class="stat-type">${index + 1}. ${typeLabel}</div>
                 <div class="stat-params">Параметры: ${paramsText}</div>
-                <div class="stat-count">Выполнено: ${item.count} раз(а)</div>
+                <div class="stat-value">Выполнено: ${item.count} раз(а)</div>
             </div>
         `;
     });

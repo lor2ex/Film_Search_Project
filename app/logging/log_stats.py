@@ -17,7 +17,7 @@ class LogStats(MongoConnection):
 
     def get_popular_searches(self, limit: int = 5) -> List[Dict]:
         """
-        Получение топ популярных запросов (уникальных по типу и ключевым параметрам, исключая page)
+        Получение топ популярных запросов
 
         Args:
             limit (int): Количество результатов
@@ -32,45 +32,13 @@ class LogStats(MongoConnection):
 
             collection = self.db.final_project_010825_ptm_al
             
-            # Создаем нормализованные параметры без поля page
+            # Простая группировка по типу поиска и параметрам
             pipeline = [
-                {
-                    "$addFields": {
-                        "normalized_params": {
-                            "$switch": {
-                                "branches": [
-                                    {
-                                        "case": {"$eq": ["$search_type", "keyword"]},
-                                        "then": {"keyword": "$params.keyword"}
-                                    },
-                                    {
-                                        "case": {"$eq": ["$search_type", "genre__years_range"]},
-                                        "then": {
-                                            "genre": "$params.genre",
-                                            "years_range": "$params.years_range"
-                                        }
-                                    },
-                                    {
-                                        "case": {"$eq": ["$search_type", "genre"]},
-                                        "then": {"genre": "$params.genre"}
-                                    },
-                                    {
-                                        "case": {"$eq": ["$search_type", "actor"]},
-                                        "then": {
-                                            "actor_name": {"$ifNull": ["$params.actor_name", {"$toString": "$params.actor_id"}]}
-                                        }
-                                    }
-                                ],
-                                "default": "$params"
-                            }
-                        }
-                    }
-                },
                 {
                     "$group": {
                         "_id": {
                             "search_type": "$search_type",
-                            "params": "$normalized_params"
+                            "params": "$params"
                         },
                         "count": {"$sum": 1},
                         "last_timestamp": {"$max": "$timestamp"}
@@ -91,7 +59,7 @@ class LogStats(MongoConnection):
 
     def get_recent_searches(self, limit: int = 5) -> List[Dict]:
         """
-        Получение последних уникальных поисков (уникальных по типу и ключевым параметрам, исключая page)
+        Получение последних уникальных поисков
 
         Args:
             limit (int): Количество результатов
@@ -106,40 +74,8 @@ class LogStats(MongoConnection):
 
             collection = self.db.final_project_010825_ptm_al
             
-            # Создаем нормализованные параметры и получаем последние уникальные запросы
+            # Простая сортировка по времени с группировкой
             pipeline = [
-                {
-                    "$addFields": {
-                        "normalized_params": {
-                            "$switch": {
-                                "branches": [
-                                    {
-                                        "case": {"$eq": ["$search_type", "keyword"]},
-                                        "then": {"keyword": "$params.keyword"}
-                                    },
-                                    {
-                                        "case": {"$eq": ["$search_type", "genre__years_range"]},
-                                        "then": {
-                                            "genre": "$params.genre",
-                                            "years_range": "$params.years_range"
-                                        }
-                                    },
-                                    {
-                                        "case": {"$eq": ["$search_type", "genre"]},
-                                        "then": {"genre": "$params.genre"}
-                                    },
-                                    {
-                                        "case": {"$eq": ["$search_type", "actor"]},
-                                        "then": {
-                                            "actor_name": {"$ifNull": ["$params.actor_name", {"$toString": "$params.actor_id"}]}
-                                        }
-                                    }
-                                ],
-                                "default": "$params"
-                            }
-                        }
-                    }
-                },
                 {
                     "$sort": {"timestamp": -1}
                 },
@@ -147,13 +83,13 @@ class LogStats(MongoConnection):
                     "$group": {
                         "_id": {
                             "search_type": "$search_type",
-                            "params": "$normalized_params"
+                            "params": "$params"
                         },
                         "timestamp": {"$first": "$timestamp"},
                         "results_count": {"$first": "$results_count"},
                         "execution_time_ms": {"$first": "$execution_time_ms"},
                         "search_type": {"$first": "$search_type"},
-                        "params": {"$first": "$normalized_params"}
+                        "params": {"$first": "$params"}
                     }
                 },
                 {

@@ -19,8 +19,12 @@ class LogWriter(MongoConnection):
 
     def log_search(self, search_type: str, params: Dict,
                    results_count: int, execution_time_ms: float) -> bool:
-        """Логирование поискового запроса в MongoDB"""
+        """Логирование поискового запроса в MongoDB (только первая страница)"""
         try:
+            # Логируем только первую страницу для избежания дублей в статистике
+            if params.get('page', 1) != 1:
+                return True  # Не логируем, но возвращаем успех
+                
             if self.db is None:
                 logger.warning("Нет подключения к MongoDB")
                 return False

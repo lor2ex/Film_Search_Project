@@ -738,7 +738,7 @@ select.form-control {
 }
 
 /* END PERPLEXITY DESIGN SYSTEM */
-```css
+
 /* Modified stylesheet adhering to Perplexity Design System */
 
 :root {
@@ -1520,4 +1520,3 @@ body {
         font-size: var(--font-size-sm);
     }
 }
-```
