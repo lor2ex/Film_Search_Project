@@ -22,15 +22,15 @@
      │                            │                         │
      ↓                            ↓                         ↓
 ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
-│  MySQL Database  │    │   MongoDB WRITE  │    │   Static Files   │
+│  MySQL Database  │    │   MongoDB        │    │   Static Files   │
 │   (Sakila)       │    │   (Logging)      │    │  (CSS, JS, HTML) │
 │                  │    │                  │    │                  │
-│ • film           │    │ • search_logs    │    │ /static/css      │
-│ • actor          │    │   - timestamp    │    │ /static/js       │
-│ • category       │    │   - search_type  │    │ /static/index.html
-│ • film_actor     │    │   - params       │    │                  │
-│ • film_category  │    │   - results_count│    │                  │
-│                  │    │   - exec_time    │    │                  │
+│ • film           │    │ • MongoConnection│    │ /static/css      │
+│ • actor          │    │   (базовый класс)│    │ /static/js       │
+│ • category       │    │ • LogWriter      │    │ /static/index.html
+│ • film_actor     │    │   (наследует)    │    │                  │
+│ • film_category  │    │ • LogStats       │    │                  │
+│                  │    │   (наследует)    │    │                  │
 └──────────────────┘    └──────────────────┘    └──────────────────┘
 ```
 
@@ -106,24 +106,30 @@ class MySQLConnector:
 ---
 
 ### 4️⃣ LOGGING LAYER (Слой логирования)
-**Файлы:** `app/logging/log_writer.py`, `app/logging/log_stats.py`
+**Файлы:** `app/database/mongo_connection.py`, `app/logging/log_writer.py`, `app/logging/log_stats.py`
 
 **Ответственность:**
-- Запись логов в MongoDB
-- Получение статистики из MongoDB
-- Обработка подключения к MongoDB
+- Базовое подключение к MongoDB (MongoConnection)
+- Запись логов в MongoDB (LogWriter наследует MongoConnection)
+- Получение статистики из MongoDB (LogStats наследует MongoConnection)
+- Обработка ошибок подключения к MongoDB
 
 **Ключевые классы:**
 ```python
-class LogWriter:
-    def __init__(mongodb_url)  # Подключение
-    def log_search()           # Логирование поиска
+class MongoConnection:
+    def __init__(mongodb_url, database_name)  # Базовое подключение
+    def _connect()                            # Установка соединения
+    def close()                               # Закрытие соединения
 
-class LogStats:
-    def __init__(mongodb_url)  # Подключение
-    def get_popular_searches() # Популярные запросы
-    def get_recent_searches()  # Последние запросы
-    def get_stats_by_type()    # Статистика по типам
+class LogWriter(MongoConnection):
+    def __init__(mongodb_url, database_name, collection_name)
+    def log_search()                          # Логирование поиска
+
+class LogStats(MongoConnection):
+    def __init__(mongodb_url, database_name)
+    def get_popular_searches()                # Популярные запросы
+    def get_recent_searches()                 # Последние запросы
+    def get_stats_by_type()                   # Статистика по типам
 ```
 
 ---
@@ -213,13 +219,22 @@ except Error as err:
         logger.error(f"Ошибка: {err}")
 ```
 
-### MongoDB ошибки (LogWriter, LogStats)
+### MongoDB ошибки (MongoConnection, LogWriter, LogStats)
 ```python
 try:
-    client = MongoClient(mongodb_url, serverSelectionTimeoutMS=5000)
-    client.admin.command('ping')
+    self.client = MongoClient(
+        self.mongodb_url,
+        serverSelectionTimeoutMS=5000,
+        connectTimeoutMS=10000
+    )
+    # Проверка подключения
+    self.client.admin.command('ping')
+    self.db = self.client[self.database_name]
+    logger.info(f"Подключение к MongoDB успешно: {self.database_name}")
 except (ServerSelectionTimeoutError, ConnectionFailure) as err:
     logger.error(f"Ошибка подключения к MongoDB: {err}")
+except Exception as err:
+    logger.error(f"Неизвестная ошибка при подключении к MongoDB: {err}")
 ```
 
 ### API ошибки (films.py)
@@ -399,10 +414,19 @@ CMD ["python", "main.py"]
 
 Архитектура приложения следует классическому паттерну MVC с хорошим разделением ответственности:
 
-✅ **Модульность** - каждый слой независим
-✅ **Масштабируемость** - легко добавлять новые функции
-✅ **Поддерживаемость** - код хорошо организован и документирован
-✅ **Безопасность** - защита от основных уязвимостей
-✅ **Производительность** - оптимизированные запросы
+✅ **Модульность** - каждый слой независим  
+✅ **Масштабируемость** - легко добавлять новые функции  
+✅ **Поддерживаемость** - код хорошо организован и документирован  
+✅ **Безопасность** - защита от основных уязвимостей  
+✅ **Производительность** - оптимизированные запросы  
+✅ **Наследование** - базовый класс MongoConnection для всех MongoDB операций  
+✅ **Обработка ошибок** - надежное подключение к MongoDB с проверкой соединения
 
 **Идеально подходит для учебного проекта и может быть расширено в production приложение.**
+
+### Ключевые улучшения архитектуры:
+
+1. **MongoConnection базовый класс** - централизованное управление подключением к MongoDB
+2. **Наследование в логировании** - LogWriter и LogStats наследуют общую функциональность
+3. **Улучшенная обработка ошибок** - проверка подключения через ping команду
+4. **Настроенные таймауты** - serverSelectionTimeoutMS и connectTimeoutMS для стабильности

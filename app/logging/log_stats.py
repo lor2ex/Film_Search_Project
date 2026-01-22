@@ -2,52 +2,18 @@
 Модуль для получения статистики поисков из MongoDB
 """
 
-from pymongo import MongoClient
-from pymongo.errors import ServerSelectionTimeoutError
-from typing import List, Dict, Optional
+from app.database.mongo_connection import MongoConnection
+from typing import List, Dict
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class LogStats:
-    """
-    Класс для получения статистики поисковых запросов из MongoDB
-    """
+class LogStats(MongoConnection):
+    """Класс для получения статистики поисковых запросов из MongoDB"""
 
     def __init__(self, mongodb_url: str, database_name: str = 'ich_edit'):
-        """
-        Инициализация подключения к MongoDB
-
-        Args:
-            mongodb_url (str): URL подключения к MongoDB
-            database_name (str): Название базы данных
-        """
-        self.mongodb_url = mongodb_url
-        self.database_name = database_name
-        self.client = None
-        self.db = None
-        self._connect()
-
-    def _connect(self) -> bool:
-        """
-        Установка подключения к MongoDB
-
-        Returns:
-            bool: True если подключение успешно
-        """
-        try:
-            self.client = MongoClient(
-                self.mongodb_url,
-                serverSelectionTimeoutMS=5000
-            )
-            self.client.admin.command('ping')
-            self.db = self.client[self.database_name]
-            logger.info(f"Подключение к MongoDB для статистики успешно")
-            return True
-        except Exception as err:
-            logger.error(f"Ошибка подключения для статистики: {err}")
-            return False
+        super().__init__(mongodb_url, database_name)
 
     def get_popular_searches(self, limit: int = 5) -> List[Dict]:
         """

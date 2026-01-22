@@ -5,7 +5,7 @@ API маршруты для поиска фильмов
 from fastapi import APIRouter, Query
 import time
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 # Импорт локальных модулей
 import sys
@@ -29,6 +29,24 @@ router = APIRouter(prefix="/api", tags=["films"])
 mysql_db = MySQLConnector(dbconfig)
 log_writer = LogWriter(MONGODB_URL_WRITE)
 log_stats = LogStats(MONGODB_URL_READ)
+
+
+def enrich_films_data(films: List[Dict]) -> List[Dict]:
+    """
+    Обогащение данных фильмов актёрами и категориями
+    
+    Args:
+        films (List[Dict]): Список фильмов из базы данных
+        
+    Returns:
+        List[Dict]: Список обогащённых фильмов с актёрами и категориями
+    """
+    enriched_films = []
+    for film in films:
+        actors = mysql_db.get_film_actors(film['film_id'])
+        categories = mysql_db.get_film_categories(film['film_id'])
+        enriched_films.append(format_film_response(film, actors, categories))
+    return enriched_films
 
 
 # ===== ПОИСК ПО КЛЮЧЕВОМУ СЛОВУ =====
@@ -57,11 +75,7 @@ async def search_by_keyword(
         films, total_count = mysql_db.search_by_keyword(q, page, page_size=10)
 
         # Обогащение данных (добавление актёров и жанров)
-        enriched_films = []
-        for film in films:
-            actors = mysql_db.get_film_actors(film['film_id'])
-            categories = mysql_db.get_film_categories(film['film_id'])
-            enriched_films.append(format_film_response(film, actors, categories))
+        enriched_films = enrich_films_data(films)
 
         execution_time = time.time() - start_time
 
@@ -117,11 +131,7 @@ async def search_by_genre_and_year(
             genre, year_from, year_to, page, page_size=10
         )
 
-        enriched_films = []
-        for film in films:
-            actors = mysql_db.get_film_actors(film['film_id'])
-            categories = mysql_db.get_film_categories(film['film_id'])
-            enriched_films.append(format_film_response(film, actors, categories))
+        enriched_films = enrich_films_data(films)
 
         execution_time = time.time() - start_time
 
@@ -173,11 +183,7 @@ async def search_by_genre(
     try:
         films, total_count = mysql_db.search_by_genre(genre, page, page_size=10)
 
-        enriched_films = []
-        for film in films:
-            actors = mysql_db.get_film_actors(film['film_id'])
-            categories = mysql_db.get_film_categories(film['film_id'])
-            enriched_films.append(format_film_response(film, actors, categories))
+        enriched_films = enrich_films_data(films)
 
         execution_time = time.time() - start_time
 
@@ -226,11 +232,7 @@ async def search_by_actor(
     try:
         films, total_count = mysql_db.search_by_actor(actor_id, page, page_size=10)
 
-        enriched_films = []
-        for film in films:
-            actors = mysql_db.get_film_actors(film['film_id'])
-            categories = mysql_db.get_film_categories(film['film_id'])
-            enriched_films.append(format_film_response(film, actors, categories))
+        enriched_films = enrich_films_data(films)
 
         execution_time = time.time() - start_time
 

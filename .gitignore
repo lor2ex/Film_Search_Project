@@ -134,6 +134,7 @@ dmypy.json
 
 # Privat Docs
 PROJECT_DOCUMENTATION.md
+CHALLENGES_AND_SOLUTIONS.md
 
 # TMDB API Configuration (содержит секретные ключи)
 tmdb_config.py
