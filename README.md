@@ -142,7 +142,7 @@ film-search-project/
 ├── app/                         # Основной пакет приложения
 │   ├── database/
 │   │   ├── mysql_connector.py    # DAO для MySQL
-│   │   └── mongo_connection.py   # DAO для MongoDB
+│   │   └── mongo_connection.py   # Подключение к MongoDB
 │   │
 │   ├── logging/
 │   │   ├── log_writer.py         # Запись логов в MongoDB (наследует MongoConnection)
